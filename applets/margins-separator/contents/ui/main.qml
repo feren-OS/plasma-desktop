@@ -12,7 +12,7 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 
 Item {
     id: root
-    Layout.minimumWidth: plasmoid.userConfiguring ? units.largeSpacing : 2
+    Layout.minimumWidth:   2 * PlasmaCore.Units.devicePixelRatio
     Layout.preferredWidth: Layout.minimumWidth
     Layout.maximumWidth:   Layout.minimumWidth
 

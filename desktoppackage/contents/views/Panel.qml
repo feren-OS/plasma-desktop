@@ -106,6 +106,28 @@ Item {
         }
     }
 
+    PlasmaCore.SortFilterModel {
+        id: maximisedWindowsModel
+        filterRole: 'IsMinimized'
+        filterRegExp: 'false'
+        onDataChanged: Qt.callLater(root.updateWindows)
+        onCountChanged: Qt.callLater(root.updateWindows)
+        sourceModel: TaskManager.TasksModel {
+            filterByVirtualDesktop: true
+            filterByActivity: true
+            filterNotMaximized: true
+            filterByScreen: true
+            filterHidden: true
+
+            screenGeometry: panel.screenGeometry
+            virtualDesktop: virtualDesktopInfo.currentDesktop
+            activity: activityInfo.currentActivity
+
+            id: tasksModel2
+            groupMode: TaskManager.TasksModel.GroupDisabled
+        }
+    }
+
     KWindowSystem {
         id: kwindowsystem
     }
@@ -197,15 +219,16 @@ Item {
     property bool isTransparent: panel.opacityMode === Panel.Global.Translucent
     property bool isAdaptive: panel.opacityMode === Panel.Global.Adaptive
     property bool floating: panel.floating
+    readonly property bool adaptiveCovered: !kwindowsystem.showingDesktop && maximisedWindowsModel.count > 0 && panel.visibilityMode == Panel.Global.NormalPanel
     readonly property bool screenCovered: !kwindowsystem.showingDesktop && touchingWindow && panel.visibilityMode == Panel.Global.NormalPanel
-    property var stateTriggers: [floating, screenCovered, isOpaque, isAdaptive, isTransparent, kwindowsystem.compositingActive]
+    property var stateTriggers: [floating, adaptiveCovered, screenCovered, isOpaque, isAdaptive, isTransparent, kwindowsystem.compositingActive]
     onStateTriggersChanged: {
         let opaqueApplets = false
-        if ((!floating || screenCovered) && (isOpaque || (screenCovered && isAdaptive))) {
+        if ((!floating || screenCovered) && (isOpaque || (adaptiveCovered && isAdaptive))) {
             panelOpacity = 1
             opaqueApplets = true
             floatingness = 0
-        } else if ((!floating || screenCovered) && (isTransparent || (!screenCovered && isAdaptive))) {
+        } else if ((!floating || screenCovered) && (isTransparent || (!adaptiveCovered && isAdaptive))) {
             panelOpacity = 0
             floatingness = 0
         } else if ((floating && !screenCovered) && (isTransparent || isAdaptive)) {
